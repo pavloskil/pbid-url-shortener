@@ -1,0 +1,40 @@
+version: "3.8"
+services:
+  pbid-mongodb:
+    image: mongo
+    container_name: pbid-mongodb
+    volumes:
+      - mongo:/data/db
+    ports:
+      - 27017:27017
+    restart: unless-stopped
+  pbid-server:
+    container_name: pbid-server
+    build:
+      context: ./server
+      args:
+        MONGO_URL: ${MONGO_URL}
+        SHORTEN_URL: ${SHORTEN_URL}
+    ports:
+      - 5000:5000
+    restart: unless-stopped
+    links:
+      - pbid-mongodb
+    depends_on:
+      - pbid-mongodb
+    volumes:
+      - .:/home/node/app
+      - node_modules:/home/node/app/node_modules
+  pbid-client:
+    build:
+      context: ./client
+      args:
+        API_PORT: ${API_PORT}
+        APP_DOMAIN: ${APP_DOMAIN}
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+
+volumes:
+  mongo:
+  node_modules:
